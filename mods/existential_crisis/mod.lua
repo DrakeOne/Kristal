@@ -2,9 +2,6 @@ function Mod:init()
     print("Existential Crisis mod loaded!")
     print("Prepare to question everything...")
     
-    -- Register the encounter
-    self:registerEncounter("bob_encounter")
-    
     -- Track some mod-specific variables
     self.bob_defeated = false
     self.times_died_to_bob = 0
@@ -20,7 +17,7 @@ function Mod:load(data, new_file)
     end
     
     -- Start with the intro cutscene
-    if new_file then
+    if new_file and Game.world then
         Game.world:startCutscene("intro")
     end
 end
