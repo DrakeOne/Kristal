@@ -8,23 +8,20 @@ return function(cutscene)
     cutscene:fadeOut(0)
     cutscene:wait(0.5)
     
-    -- Show text on black screen with proper positioning
-    local center_x = SCREEN_WIDTH / 2
-    local center_y = SCREEN_HEIGHT / 2
-    
-    cutscene:text("* You boot up a suspicious mod...", center_x, center_y - 60, nil, {align = "center", font = "main"})
+    -- Show text on black screen
+    cutscene:text("* You boot up a suspicious mod...")
     cutscene:wait(1)
     
-    cutscene:text("* Something feels... wrong.", center_x, center_y - 60, nil, {align = "center", font = "main"})
+    cutscene:text("* Something feels... wrong.")
     cutscene:wait(1)
     
-    cutscene:text("* The void calls out to you.", center_x, center_y - 60, nil, {align = "center", font = "main"})
+    cutscene:text("* The void calls out to you.")
     cutscene:wait(1)
     
-    cutscene:text("* You have no choice but to answer.", center_x, center_y - 60, nil, {align = "center", font = "main"})
+    cutscene:text("* You have no choice but to answer.")
     cutscene:wait(1)
     
-    cutscene:text("* ...", center_x, center_y - 60, nil, {align = "center", font = "main"})
+    cutscene:text("* ...")
     cutscene:wait(1.5)
     
     -- Simple screen shake effect
