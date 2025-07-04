@@ -9,17 +9,8 @@ function BobEncounter:init()
     -- Use default battle music
     self.music = "battle"
     
-    -- Add a simple enemy (using virovirokun as placeholder since Bob doesn't have sprites)
-    -- Position it in the center of the battle arena
-    self:addEnemy("virovirokun", 320, 200)
-    
-    -- Custom dialogue for this encounter
-    self.dialogue_override = {
-        "Bob?",
-        "I am Bob.",
-        "You are not Bob.",
-        "This is... problematic."
-    }
+    -- Add the actual Bob enemy (not virovirokun)
+    self:addEnemy("bob", 320, 200)
 end
 
 function BobEncounter:onBattleStart()
