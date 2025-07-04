@@ -76,6 +76,10 @@ function Bob:init()
     -- Enemy name
     self.name = "Bob"
     
+    -- Width and height for this enemy
+    self.width = 64
+    self.height = 64
+    
     -- NO llamar a setActor porque no tenemos sprites
     -- self:setActor("bob")
 
@@ -88,17 +92,14 @@ function Bob:init()
     self.defense = 0
     -- Enemy reward
     self.money = 0
+    self.experience = 0
 
     -- Mercy given when sparing this enemy before its spareable (20% for basic enemies)
     self.spare_points = 20
 
     -- List of possible wave ids, randomly picked each turn
     self.waves = {
-        "quarter_life",
-        "social_media",
-        "philosophy",
-        "error_404",
-        "buffering"
+        "basic"  -- Usar una wave básica por ahora
     }
 
     -- Dialogue randomly displayed in the enemy's speech bubble
@@ -133,10 +134,10 @@ function Bob:init()
     self.low_health_text = "* Bob seems... relieved?"
 
     -- Register acts
+    self:registerAct("Check")
     self:registerAct("Therapy")
     self:registerAct("Relate")
     self:registerAct("Joke")
-    self:registerAct("Philosophy", "", {"ralsei"})
     
     -- Initialize mood system
     self.mood = "normal" -- normal, depressed, manic, apathetic
@@ -164,6 +165,8 @@ function Bob:init()
     
     -- Create custom sprite
     self.sprite = BobCustomSprite()
+    self.sprite:setOrigin(0.5, 0.5)
+    self.sprite:setPosition(self.width/2, self.height/2)
     self:addChild(self.sprite)
     
     -- Animation variables
@@ -181,7 +184,10 @@ function Bob:onAct(battler, name)
     -- Track act usage
     self.act_count[name] = (self.act_count[name] or 0) + 1
     
-    if name == "Therapy" then
+    if name == "Check" then
+        return self.check
+        
+    elseif name == "Therapy" then
         self:addMercy(30)
         if self.act_count[name] > 1 then
             self.dialogue_override = "Oh great, more therapy.\nJust what I needed."
@@ -207,12 +213,6 @@ function Bob:onAct(battler, name)
             self.dialogue_override = "Ha. Ha. Very funny.\nComedy is dead, just like my soul."
             return "* You tell Bob a joke.\n* He's not very amused."
         end
-        
-    elseif name == "Philosophy" then
-        self:setMercy(100)
-        self.dialogue_override = "The meaning of life is...\nwait, that's... huh.\nI need to think about this."
-        Game.battle:startActCutscene("bob", "philosophy_ending")
-        return
         
     elseif name == "Standard" then
         self:addMercy(50)
@@ -247,14 +247,14 @@ function Bob:onDefeat(damage, battler)
     self.dialogue_override = "Finally... wait, why do I\nhear boss music in the afterlife?"
     
     -- Easter egg: Bob respawns
-    Game.battle:startActCutscene("bob", "fake_death")
+    -- Game.battle:startActCutscene("bob", "fake_death")
 end
 
 function Bob:onSpare(battler)
     self.dialogue_override = "You... you think I deserve to exist?\nThat's... something."
     
     if Game:getFlag("identity_crisis") then
-        Game.battle:startActCutscene("bob", "identity_crisis_spare")
+        -- Game.battle:startActCutscene("bob", "identity_crisis_spare")
     end
 end
 
@@ -264,7 +264,7 @@ function Bob:update()
     -- Update mood timer
     self.mood_timer = self.mood_timer + DT
     
-    -- Change mood every 3 turns
+    -- Change mood every 15 seconds
     if self.mood_timer > 15 then
         self.mood_timer = 0
         local moods = {"normal", "depressed", "manic", "apathetic"}
@@ -308,16 +308,8 @@ function Bob:update()
 end
 
 function Bob:getNextWaves()
-    -- Modify wave selection based on mood
-    if self.mood == "depressed" then
-        return {"philosophy", "error_404"}
-    elseif self.mood == "manic" then
-        return {"social_media", "buffering", "quarter_life"}
-    elseif self.mood == "apathetic" then
-        return {"error_404"}
-    else
-        return self.waves
-    end
+    -- Por ahora usar waves básicas hasta que creemos las custom
+    return {"basic"}
 end
 
 return Bob
