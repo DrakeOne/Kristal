@@ -34,6 +34,6 @@ return function(cutscene)
     cutscene:fadeIn(0.5)
     cutscene:wait(0.5)
     
-    -- Start the encounter
-    cutscene:encounter("bob_encounter", true)
+    -- Start the encounter using the correct method
+    cutscene:startEncounter("bob_encounter", true)
 end
