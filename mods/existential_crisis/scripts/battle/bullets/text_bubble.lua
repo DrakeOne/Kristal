@@ -1,79 +1,72 @@
 local TextBubble, super = Class(Bullet)
 
 function TextBubble:init(x, y, text)
-    super.init(self, x, y, "battle/bullets/text_bubble")
+    super.init(self, x, y)
     
-    self.text = text or "?"
-    self.damage = 0  -- No damage, just slows you down
+    self.text = text or "???"
+    self.damage = 4
     
-    -- Movement
-    self.physics.speed_y = 2 * 30
+    -- Tamaño basado en texto
+    self.font = Assets.getFont("main", 16)
+    self.width = self.font:getWidth(self.text) + 20
+    self.height = 30
     
-    -- Slow effect
-    self.slow_duration = 3
-    self.touched_soul = false
+    self.collider = Hitbox(self, 0, 0, self.width, self.height)
     
-    -- For converging bullets
-    self.converge = false
-    self.target_x = x
-    self.target_y = y
+    -- Movimiento flotante
+    self.float_timer = math.random() * math.pi * 2
+    self.base_y = y
     
-    self.remove_offscreen = true
+    -- Velocidad de movimiento
+    self.speed = 2
 end
 
 function TextBubble:update()
     super.update(self)
     
-    -- Converge to target if needed
-    if self.converge then
-        local dx = self.target_x - self.x
-        local dy = self.target_y - self.y
-        
-        self.physics.speed_x = dx * 2
-        self.physics.speed_y = dy * 2
-        
-        -- Stop when close enough
-        if math.abs(dx) < 5 and math.abs(dy) < 5 then
-            self.physics.speed_x = 0
-            self.physics.speed_y = 0
-            self.converge = false
-        end
-    end
-end
-
-function TextBubble:onCollide(soul)
-    if not self.touched_soul then
-        self.touched_soul = true
-        
-        -- Apply slow effect to soul
-        soul.slow_timer = self.slow_duration
-        
-        -- Show philosophical thought
-        local thought_text = Text(self.text, soul.x, soul.y - 30)
-        thought_text.alpha = 0.8
-        thought_text.scale_x = 0.5
-        thought_text.scale_y = 0.5
-        Game.battle:addChild(thought_text)
-        
-        -- Fade out thought
-        thought_text:fadeOutAndRemove(2)
-    end
+    -- Movimiento flotante
+    self.float_timer = self.float_timer + DT * 2
+    self.y = self.base_y + math.sin(self.float_timer) * 10
     
-    -- Don't deal damage, just remove
-    self:remove()
+    -- Mover hacia la izquierda
+    self.x = self.x - self.speed * DTMULT
+    
+    -- Remover si sale de la arena
+    if self.x + self.width < Game.battle.arena.left - 20 then
+        self:remove()
+    end
 end
 
 function TextBubble:draw()
-    -- Draw bubble
-    love.graphics.setColor(0.5, 0.5, 1, 0.7)
-    love.graphics.circle("fill", 0, 0, 20)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.circle("line", 0, 0, 20)
+    super.draw(self)
     
-    -- Draw text
-    love.graphics.setFont(Assets.getFont("main", 16))
-    local w = Assets.getFont("main", 16):getWidth(self.text)
-    love.graphics.print(self.text, -w/2, -8)
+    -- Burbuja de diálogo
+    love.graphics.setColor(0.2, 0.2, 0.2)
+    love.graphics.rectangle("fill", 0, 0, self.width, self.height, 5)
+    
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", 0, 0, self.width, self.height, 5)
+    
+    -- Cola de la burbuja
+    love.graphics.setColor(0.2, 0.2, 0.2)
+    love.graphics.polygon("fill", 
+        self.width - 15, self.height - 5,
+        self.width - 5, self.height + 5,
+        self.width - 20, self.height
+    )
+    
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.polygon("line", 
+        self.width - 15, self.height - 5,
+        self.width - 5, self.height + 5,
+        self.width - 20, self.height
+    )
+    
+    -- Texto
+    love.graphics.setFont(self.font)
+    love.graphics.printf(self.text, 5, 7, self.width - 10, "center")
+    
+    love.graphics.setColor(1, 1, 1)
 end
 
 return TextBubble
