@@ -17,6 +17,11 @@ function Mod:load(data, new_file)
         self.philosophical_level = data.philosophical_level or 0
         self.intro_played = data.intro_played or false
     end
+    
+    -- If it's a new file and we haven't played the intro yet
+    if new_file and not self.intro_played then
+        self.should_play_intro = true
+    end
 end
 
 function Mod:save(data)
@@ -33,20 +38,15 @@ function Mod:postInit(new_file)
     if Game.save_name and Game.save_name:upper() == "BOB" then
         Game:setFlag("identity_crisis", true)
     end
-end
-
--- Hook into the game world when it's ready
-Kristal.callEvent(KRISTAL_EVENT.onWorldInit, function()
-    -- Start intro cutscene only once when entering the world
-    if Game.world and not Mod.intro_played then
-        Mod.intro_played = true
-        -- Use a timer to ensure everything is loaded
-        Game.world.timer:after(0.1, function()
-            if Game.world.player then
-                Game.world:startCutscene("intro")
-            end
-        end)
+    
+    -- Start intro cutscene when entering the world
+    if self.should_play_intro and Game.world then
+        self.should_play_intro = false
+        self.intro_played = true
+        
+        -- Start the cutscene immediately
+        Game.world:startCutscene("intro")
     end
-end)
+end
 
 return Mod
