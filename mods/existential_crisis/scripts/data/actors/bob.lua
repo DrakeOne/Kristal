@@ -43,9 +43,4 @@ function actor:init()
     }
 end
 
-function actor:createSprite()
-    -- If sprites don't exist, create a simple blob shape
-    return BobSprite(self)
-end
-
 return actor
