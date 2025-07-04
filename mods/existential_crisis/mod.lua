@@ -1,6 +1,3 @@
--- Load custom sprite class
-BobSprite = require("scripts.objects.bobsprite")
-
 function Mod:init()
     print("Existential Crisis mod loaded!")
     print("Prepare to question everything...")
