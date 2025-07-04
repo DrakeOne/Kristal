@@ -13,17 +13,30 @@ function BobEncounter:init()
     self:addEnemy("bob", 320, 200)
 end
 
+function BobEncounter:onBattleInit()
+    super.onBattleInit(self)
+    -- Asegurarse de que la batalla esté configurada correctamente
+end
+
 function BobEncounter:onBattleStart()
-    -- Show some flavor text when battle starts
-    Game.battle:startCutscene(function(cutscene)
-        cutscene:text("* A strange presence fills the room...")
-        cutscene:text("* You feel like you're being judged.")
-    end)
+    -- Remover la cutscene que podría estar causando el problema
+    -- En su lugar, solo mostrar el texto inicial
+    super.onBattleStart(self)
+end
+
+function BobEncounter:onTurnStart()
+    super.onTurnStart(self)
+    -- Asegurarse de que el UI esté visible
+    if Game.battle.state == "INTRO" then
+        Game.battle:setState("ACTIONSELECT")
+    end
 end
 
 function BobEncounter:onBattleEnd()
     -- Mark that Bob was defeated
-    Mod.bob_defeated = true
+    if Mod then
+        Mod.bob_defeated = true
+    end
     Game:setFlag("bob_defeated", true)
 end
 
