@@ -1,0 +1,19 @@
+{
+    "id": "existential_crisis",
+    "name": "Existential Crisis",
+    "subtitle": "Face your inner demons... literally",
+    "version": "v1.0.0",
+    "engineVer": "v0.10.0-dev",
+    "chapter": 2,
+    "map": null,
+    "party": ["kris", "susie", "ralsei"],
+    "inventory": {
+        "items": ["darkburger", "darkburger"],
+        "key_items": ["cell_phone"]
+    },
+    "config": {
+        "kristal": {
+            "skipIntro": true
+        }
+    }
+}
