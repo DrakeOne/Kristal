@@ -55,6 +55,22 @@ return {
           rotation = 0,
           visible = true,
           properties = {}
+        },
+        {
+          id = 6,
+          name = "script",
+          type = "script",
+          shape = "rectangle",
+          x = 0,
+          y = 0,
+          width = 640,
+          height = 480,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["script"] = "intro_trigger",
+            ["once"] = false
+          }
         }
       }
     },
