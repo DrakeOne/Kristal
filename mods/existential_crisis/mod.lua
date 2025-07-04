@@ -1,3 +1,6 @@
+-- Load custom sprite class
+BobSprite = require("scripts.objects.bobsprite")
+
 function Mod:init()
     print("Existential Crisis mod loaded!")
     print("Prepare to question everything...")
@@ -12,6 +15,13 @@ function Mod:init()
 end
 
 function Mod:load(data, new_file)
+    -- Load saved data
+    if data then
+        self.bob_defeated = data.bob_defeated or false
+        self.times_died_to_bob = data.times_died_to_bob or 0
+        self.philosophical_level = data.philosophical_level or 0
+    end
+    
     -- Start with the intro cutscene
     if new_file then
         Game.world:startCutscene("intro")
