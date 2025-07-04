@@ -1,0 +1,223 @@
+local Bob, super = Class(EnemyBattler)
+
+function Bob:init()
+    super.init(self)
+
+    -- Enemy name
+    self.name = "Bob"
+    -- Sets the actor, which handles the enemy's sprites
+    self:setActor("bob")
+
+    -- Enemy health
+    self.max_health = 999
+    self.health = 999
+    -- Enemy attack (determines bullet damage)
+    self.attack = 6
+    -- Enemy defense (usually 0)
+    self.defense = 0
+    -- Enemy reward
+    self.money = 0
+
+    -- Mercy given when sparing this enemy before its spareable (20% for basic enemies)
+    self.spare_points = 20
+
+    -- List of possible wave ids, randomly picked each turn
+    self.waves = {
+        "quarter_life",
+        "social_media",
+        "philosophy",
+        "error_404",
+        "buffering"
+    }
+
+    -- Dialogue randomly displayed in the enemy's speech bubble
+    self.dialogue = {
+        "...",
+        "Why?",
+        "Does any of this matter?",
+        "I'm tired.",
+        "Leave me alone.",
+        "Error 404: Will to live not found.",
+        "Buffering...",
+        "This is fine.",
+        "Are we having fun yet?",
+        "Existence is pain."
+    }
+
+    -- Check text
+    self.check = "AT ??? DF ???\n* Having a rough eternity.\n* Smells like expired philosophy books\nand regret."
+
+    -- Text randomly displayed at the bottom of the screen each turn
+    self.text = {
+        "* Bob stares into the void.\n* The void stares back.",
+        "* Bob questions the nature of reality.",
+        "* Smells like existential dread.",
+        "* Bob is having a crisis.",
+        "* You feel uncomfortable.",
+        "* Bob's HP display is glitching out.",
+        "* The battle feels meaningless.\n* But you continue anyway."
+    }
+    
+    -- Text displayed at the bottom of the screen when the enemy has low health
+    self.low_health_text = "* Bob seems... relieved?"
+
+    -- Register acts
+    self:registerAct("Therapy")
+    self:registerAct("Relate")
+    self:registerAct("Joke")
+    self:registerAct("Philosophy", "", {"ralsei"})
+    
+    -- Initialize mood system
+    self.mood = "normal" -- normal, depressed, manic, apathetic
+    self.mood_timer = 0
+    self.turn_count = 0
+    
+    -- Track player actions
+    self.times_spared = 0
+    self.times_attacked = 0
+    self.last_act = nil
+    self.act_count = {}
+    
+    -- HP display shenanigans
+    self.hp_displays = {
+        "999/???",
+        "NaN/NaN",
+        "404/404",
+        "Yes/No",
+        "∞/-∞",
+        "Help/Me",
+        "Why/Tho",
+        "LOL/LMAO"
+    }
+    self.current_hp_display = 1
+end
+
+function Bob:getHPText()
+    -- Return random HP display
+    return self.hp_displays[self.current_hp_display]
+end
+
+function Bob:onAct(battler, name)
+    -- Track act usage
+    self.act_count[name] = (self.act_count[name] or 0) + 1
+    
+    if name == "Therapy" then
+        self:addMercy(30)
+        if self.act_count[name] > 1 then
+            self.dialogue_override = "Oh great, more therapy.\nJust what I needed."
+            return "* You try the therapy approach again.\n* Bob seems annoyed."
+        else
+            self.dialogue_override = "Therapy? Really?\nDo I look like I can afford that?"
+            return "* You suggest Bob should seek\nprofessional help.\n* He laughs bitterly."
+        end
+        
+    elseif name == "Relate" then
+        self:addMercy(25)
+        self.mood = "depressed"
+        self.dialogue_override = "Oh, you too?\n...That's actually worse somehow."
+        return "* You share your own existential dread.\n* Bob feels less alone but more\ndepressed."
+        
+    elseif name == "Joke" then
+        if self.mood == "depressed" then
+            self:addMercy(40)
+            self.dialogue_override = "Heh... that's actually funny.\nI hate that it's funny."
+            return "* You tell Bob a joke about existence.\n* He laughs despite himself!"
+        else
+            self:addMercy(20)
+            self.dialogue_override = "Ha. Ha. Very funny.\nComedy is dead, just like my soul."
+            return "* You tell Bob a joke.\n* He's not very amused."
+        end
+        
+    elseif name == "Philosophy" then
+        self:setMercy(100)
+        self.dialogue_override = "The meaning of life is...\nwait, that's... huh.\nI need to think about this."
+        Game.battle:startActCutscene("bob", "philosophy_ending")
+        return
+        
+    elseif name == "Standard" then
+        self:addMercy(50)
+        if battler.chara.id == "susie" then
+            self.dialogue_override = "OW! Physical pain!\nAt least it's not emotional!"
+            return "* Susie punched Bob!\n* He seems... grateful?"
+        else
+            return "* "..battler.chara:getName().." tried to help Bob.\n* It's not very effective..."
+        end
+    end
+
+    return super.onAct(self, battler, name)
+end
+
+function Bob:onHurt(damage, battler)
+    super.onHurt(self, damage, battler)
+    
+    self.times_attacked = self.times_attacked + 1
+    
+    -- Change HP display when hurt
+    self.current_hp_display = math.random(1, #self.hp_displays)
+    
+    -- Dialogue based on damage
+    if damage > 50 then
+        self.dialogue_override = "Wow, that actually hurt.\nGood for you, I guess."
+    elseif self.times_attacked > 3 then
+        self.dialogue_override = "Violence won't solve\nyour problems, you know."
+    end
+end
+
+function Bob:onDefeat(damage, battler)
+    self.dialogue_override = "Finally... wait, why do I\nhear boss music in the afterlife?"
+    
+    -- Easter egg: Bob respawns
+    Game.battle:startActCutscene("bob", "fake_death")
+end
+
+function Bob:onSpare(battler)
+    self.dialogue_override = "You... you think I deserve to exist?\nThat's... something."
+    
+    if Game:getFlag("identity_crisis") then
+        Game.battle:startActCutscene("bob", "identity_crisis_spare")
+    end
+end
+
+function Bob:update()
+    super.update(self)
+    
+    -- Update mood timer
+    self.mood_timer = self.mood_timer + DT
+    
+    -- Change mood every 3 turns
+    if self.mood_timer > 15 then
+        self.mood_timer = 0
+        local moods = {"normal", "depressed", "manic", "apathetic"}
+        self.mood = moods[math.random(1, #moods)]
+        
+        -- Announce mood change
+        if self.mood == "depressed" then
+            self.dialogue_override = "Everything is pointless..."
+        elseif self.mood == "manic" then
+            self.dialogue_override = "EVERYTHING IS FINE!\nEVERYTHING IS GREAT!"
+        elseif self.mood == "apathetic" then
+            self.dialogue_override = "Whatever. Nothing matters."
+        end
+    end
+    
+    -- Glitch effect
+    if math.random() < 0.02 then
+        self.sprite.x = self.sprite.x + math.random(-2, 2)
+        self.sprite.y = self.sprite.y + math.random(-2, 2)
+    end
+end
+
+function Bob:getNextWaves()
+    -- Modify wave selection based on mood
+    if self.mood == "depressed" then
+        return {"philosophy", "error_404"}
+    elseif self.mood == "manic" then
+        return {"social_media", "buffering", "quarter_life"}
+    elseif self.mood == "apathetic" then
+        return {"error_404"}
+    else
+        return self.waves
+    end
+end
+
+return Bob
