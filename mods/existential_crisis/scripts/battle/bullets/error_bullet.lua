@@ -1,26 +1,44 @@
 local ErrorBullet, super = Class(Bullet)
 
 function ErrorBullet:init(x, y, text)
-    super.init(self, x, y, "battle/bullets/error")
+    super.init(self, x, y)
     
     self.text = text or "ERROR"
-    self.damage = 6
+    self.damage = 5
     
-    -- Bouncing properties
+    -- Física
     self.bounce_x = 0
     self.bounce_y = 0
-    
-    -- Static mode (for walls)
     self.static = false
     self.remove_timer = nil
     
-    self.remove_offscreen = false
+    -- Visual
+    self.width = 40
+    self.height = 20
+    self.collider = Hitbox(self, 0, 0, self.width, self.height)
+    
+    -- Glitch effect
+    self.glitch_timer = 0
 end
 
 function ErrorBullet:update()
     super.update(self)
     
-    -- Remove after timer
+    -- Bouncing physics
+    if not self.static then
+        self.x = self.x + self.bounce_x * DTMULT
+        self.y = self.y + self.bounce_y * DTMULT
+        
+        -- Bounce off arena walls
+        if self.x <= Game.battle.arena.left or self.x + self.width >= Game.battle.arena.right then
+            self.bounce_x = -self.bounce_x
+        end
+        if self.y <= Game.battle.arena.top or self.y + self.height >= Game.battle.arena.bottom then
+            self.bounce_y = -self.bounce_y
+        end
+    end
+    
+    -- Remove timer
     if self.remove_timer then
         self.remove_timer = self.remove_timer - DT
         if self.remove_timer <= 0 then
@@ -28,37 +46,29 @@ function ErrorBullet:update()
         end
     end
     
-    -- Bounce off arena walls
-    if not self.static then
-        if self.x <= Game.battle.arena.left + 10 or self.x >= Game.battle.arena.right - 10 then
-            self.bounce_x = -self.bounce_x
-            self.physics.speed_x = self.bounce_x * 30
-        end
-        
-        if self.y <= Game.battle.arena.top + 10 or self.y >= Game.battle.arena.bottom - 10 then
-            self.bounce_y = -self.bounce_y
-            self.physics.speed_y = self.bounce_y * 30
-        end
-    end
+    -- Glitch effect
+    self.glitch_timer = self.glitch_timer + DT
 end
 
 function ErrorBullet:draw()
-    -- Draw error box
-    love.graphics.setColor(1, 0, 0, 0.8)
-    love.graphics.rectangle("fill", -15, -10, 30, 20)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("line", -15, -10, 30, 20)
+    super.draw(self)
     
-    -- Draw error text
-    love.graphics.setFont(Assets.getFont("main", 12))
-    local w = Assets.getFont("main", 12):getWidth(self.text)
-    love.graphics.print(self.text, -w/2, -6)
-    
-    -- Glitch effect
-    if math.random() < 0.1 then
-        love.graphics.setColor(0, 1, 0, 0.5)
-        love.graphics.rectangle("fill", -15 + math.random(-2, 2), -10 + math.random(-2, 2), 30, 20)
+    -- Glitch offset
+    local offset_x = 0
+    local offset_y = 0
+    if math.sin(self.glitch_timer * 20) > 0.8 then
+        offset_x = math.random(-2, 2)
+        offset_y = math.random(-2, 2)
     end
+    
+    -- Draw error box
+    love.graphics.setColor(1, 0, 0)
+    love.graphics.rectangle("fill", offset_x, offset_y, self.width, self.height)
+    
+    -- Draw text
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(Assets.getFont("main", 16))
+    love.graphics.printf(self.text, offset_x, offset_y + 2, self.width, "center")
     
     love.graphics.setColor(1, 1, 1)
 end
