@@ -5,7 +5,7 @@
     "version": "v1.0.0",
     "engineVer": "v0.10.0-dev",
     "chapter": 2,
-    "map": "room1",
+    "map": "void_room",
     "party": ["kris", "susie", "ralsei"],
     "inventory": {
         "items": ["darkburger", "darkburger"],
