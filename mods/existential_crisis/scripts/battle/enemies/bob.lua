@@ -90,6 +90,16 @@ function Bob:init()
         "LOL/LMAO"
     }
     self.current_hp_display = 1
+    
+    -- Create custom sprite since we don't have image files
+    self.sprite:remove()
+    self.sprite = BobCustomSprite()
+    self:addChild(self.sprite)
+    
+    -- Animation variables
+    self.wobble = 0
+    self.eye_timer = 0
+    self.blink_timer = 0
 end
 
 function Bob:getHPText()
@@ -200,6 +210,24 @@ function Bob:update()
         end
     end
     
+    -- Update animation
+    self.wobble = self.wobble + DT * 2
+    self.blink_timer = self.blink_timer + DT
+    if self.blink_timer > 3 then
+        self.eye_timer = 0.2
+        self.blink_timer = 0
+    end
+    if self.eye_timer > 0 then
+        self.eye_timer = self.eye_timer - DT
+    end
+    
+    -- Update sprite mood
+    if self.sprite and self.sprite.mood then
+        self.sprite.mood = self.mood
+        self.sprite.wobble = self.wobble
+        self.sprite.eye_timer = self.eye_timer
+    end
+    
     -- Glitch effect
     if math.random() < 0.02 then
         self.sprite.x = self.sprite.x + math.random(-2, 2)
@@ -218,6 +246,67 @@ function Bob:getNextWaves()
     else
         return self.waves
     end
+end
+
+-- Custom sprite class for Bob
+BobCustomSprite = Class(Sprite)
+
+function BobCustomSprite:init()
+    super.init(self)
+    self.width = 64
+    self.height = 64
+    self.mood = "normal"
+    self.wobble = 0
+    self.eye_timer = 0
+end
+
+function BobCustomSprite:draw()
+    super.draw(self)
+    
+    -- Draw Bob as a simple blob
+    love.graphics.push()
+    love.graphics.translate(self.width/2, self.height/2)
+    
+    -- Body (black blob)
+    love.graphics.setColor(0.1, 0.1, 0.1)
+    local scale = 1 + math.sin(self.wobble) * 0.05
+    love.graphics.ellipse("fill", 0, 0, 30 * scale, 35 * scale)
+    
+    -- Eyes (white)
+    if self.eye_timer <= 0 then
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.circle("fill", -10, -5, 5)
+        love.graphics.circle("fill", 10, -5, 5)
+        
+        -- Pupils
+        love.graphics.setColor(0, 0, 0)
+        local pupil_offset = 0
+        if self.mood == "depressed" then
+            pupil_offset = 2
+        elseif self.mood == "manic" then
+            pupil_offset = -2
+        end
+        love.graphics.circle("fill", -10, -5 + pupil_offset, 2)
+        love.graphics.circle("fill", 10, -5 + pupil_offset, 2)
+    else
+        -- Blinking
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.rectangle("fill", -15, -5, 10, 2)
+        love.graphics.rectangle("fill", 5, -5, 10, 2)
+    end
+    
+    -- Mouth (based on mood)
+    love.graphics.setColor(1, 1, 1)
+    if self.mood == "depressed" then
+        love.graphics.arc("line", "open", 0, 10, 10, 0, math.pi)
+    elseif self.mood == "manic" then
+        love.graphics.arc("line", "open", 0, 5, 15, math.pi, math.pi * 2)
+    elseif self.mood == "attack" then
+        love.graphics.ellipse("fill", 0, 10, 8, 6)
+    end
+    
+    love.graphics.pop()
+    love.graphics.setColor(1, 1, 1)
 end
 
 return Bob
