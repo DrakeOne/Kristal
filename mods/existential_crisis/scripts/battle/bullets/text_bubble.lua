@@ -19,6 +19,11 @@ function TextBubble:init(x, y, text)
     
     -- Velocidad de movimiento
     self.speed = 2
+    
+    -- Convergencia (para el ataque circular)
+    self.converge = false
+    self.target_x = nil
+    self.target_y = nil
 end
 
 function TextBubble:update()
@@ -26,13 +31,40 @@ function TextBubble:update()
     
     -- Movimiento flotante
     self.float_timer = self.float_timer + DT * 2
-    self.y = self.base_y + math.sin(self.float_timer) * 10
     
-    -- Mover hacia la izquierda
-    self.x = self.x - self.speed * DTMULT
+    if self.converge and self.target_x and self.target_y then
+        -- Mover hacia el objetivo
+        local dx = self.target_x - self.x
+        local dy = self.target_y - self.y
+        local dist = math.sqrt(dx*dx + dy*dy)
+        
+        if dist > 5 then
+            self.x = self.x + (dx / dist) * self.speed * DTMULT
+            self.y = self.y + (dy / dist) * self.speed * DTMULT
+        else
+            -- Cuando llega al centro, explotar en direcciones aleatorias
+            self.converge = false
+            local angle = math.random() * math.pi * 2
+            self.physics.speed_x = math.cos(angle) * 3
+            self.physics.speed_y = math.sin(angle) * 3
+        end
+    else
+        -- Movimiento normal
+        self.y = self.base_y + math.sin(self.float_timer) * 10
+        self.base_y = self.base_y + self.physics.speed_y * DTMULT
+        
+        -- Mover hacia la izquierda por defecto
+        if self.physics.speed_x == 0 and self.physics.speed_y == 0 then
+            self.x = self.x - self.speed * DTMULT
+        end
+    end
     
     -- Remover si sale de la arena
-    if self.x + self.width < Game.battle.arena.left - 20 then
+    local arena = Game.battle.arena
+    if self.x + self.width < arena.left - 20 or 
+       self.x > arena.right + 20 or
+       self.y + self.height < arena.top - 20 or
+       self.y > arena.bottom + 20 then
         self:remove()
     end
 end
