@@ -97,9 +97,13 @@ function Bob:init()
     -- Mercy given when sparing this enemy before its spareable (20% for basic enemies)
     self.spare_points = 20
 
-    -- List of possible wave ids, randomly picked each turn
+    -- List of possible wave ids - CORREGIDO: usar waves existentes
     self.waves = {
-        "basic"  -- Usar una wave básica por ahora
+        "buffering",
+        "error_404",
+        "philosophy",
+        "quarter_life",
+        "social_media"
     }
 
     -- Dialogue randomly displayed in the enemy's speech bubble
@@ -299,17 +303,37 @@ function Bob:update()
     end
     
     -- Glitch effect - reducido para móviles
-    local glitch_chance = Mod and Mod.mobile_mode and 0.005 or 0.02
+    local glitch_chance = love.system.getOS() == "Android" and 0.005 or 0.02
     if math.random() < glitch_chance then
-        local glitch_amount = Mod and Mod.mobile_mode and 1 or 2
+        local glitch_amount = love.system.getOS() == "Android" and 1 or 2
         self.sprite.x = self.sprite.x + math.random(-glitch_amount, glitch_amount)
         self.sprite.y = self.sprite.y + math.random(-glitch_amount, glitch_amount)
     end
 end
 
 function Bob:getNextWaves()
-    -- Por ahora usar waves básicas hasta que creemos las custom
-    return {"basic"}
+    -- CORREGIDO: Usar las waves existenciales del mod
+    local available_waves = {
+        "buffering",
+        "error_404",
+        "philosophy",
+        "quarter_life",
+        "social_media"
+    }
+    
+    -- Seleccionar waves basadas en el mood de Bob
+    if self.mood == "depressed" then
+        local depressed_waves = {"philosophy", "quarter_life"}
+        return {depressed_waves[math.random(1, 2)]}
+    elseif self.mood == "manic" then
+        local manic_waves = {"social_media", "buffering"}
+        return {manic_waves[math.random(1, 2)]}
+    elseif self.mood == "apathetic" then
+        return {"error_404"}
+    else
+        -- Seleccionar aleatoriamente
+        return {available_waves[math.random(1, #available_waves)]}
+    end
 end
 
 return Bob
