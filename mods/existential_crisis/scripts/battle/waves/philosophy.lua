@@ -31,7 +31,9 @@ function Philosophy:onStart()
         local x = math.random(arena.left + 30, arena.right - 30)
         local y = arena.top - 20
         
-        self:spawnBullet("text_bubble", x, y, question)
+        -- TextBubble expects (x, y, text)
+        local bullet = self:spawnBullet("text_bubble", x, y)
+        bullet.text = question
     end)
     
     -- After 4 seconds, spam existential questions
@@ -52,10 +54,13 @@ function Philosophy:onStart()
             local x = center_x + math.cos(angle) * radius
             local y = center_y + math.sin(angle) * radius
             
-            local bullet = self:spawnBullet("text_bubble", x, y, "?")
+            local bullet = self:spawnBullet("text_bubble", x, y)
+            bullet.text = "?"
+            -- Add converging movement
             bullet.target_x = center_x
             bullet.target_y = center_y
             bullet.converge = true
+            bullet.speed = 1  -- Slower speed for converging bullets
         end
     end)
 end
